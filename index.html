@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Animation with Dark Mode</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.5s, color 0.5s;
+            background-color: #ffffff; /* Light mode */
+            color: #000000; /* Text color */
+        }
+        body.dark {
+            background-color: #1a1a1a; /* Dark mode */
+            color: #ffffff; /* Text color */
+        }
+        #toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+        }
+        #typingText {
+            font-size: 24px;
+            white-space: pre;
+            overflow: hidden; /* Ensures text doesn't overflow */
+            border-right: 2px solid; /* Cursor effect */
+            animation: caret 0.8s steps(1) infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes caret {
+            50% { border-color: transparent; }
+        }
+        #batteryContainer {
+            display: none;
+            margin-top: 20px;
+            position: relative;
+            width: 100px;
+            height: 50px;
+            border-radius: 25px;
+            background-color: #e0e0e0;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        #batteryLevel {
+            height: 100%;
+            border-radius: 25px 0 0 25px;
+            background: linear-gradient(90deg, #ffcc00 0%, #ff6600 100%);
+            transition: width 0.5s;
+        }
+        #batteryText {
+            position: absolute;
+            top: 50%;
+            left: 120px;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+        #warningText {
+            display: none;
+            margin-top: 10px;
+            font-size: 20px;
+            color: red; /* Warning color */
+        }
+    </style>
+</head>
+<body>
+    <div id="toggle">
+        <label>
+            <input type="checkbox" id="modeSwitch">
+            Dark Mode
+        </label>
+    </div>
+    <div id="typingText"></div>
+    <div id="batteryContainer">
+        <div id="batteryLevel"></div>
+    </div>
+    <div id="batteryText"></div>
+    <div id="warningText">Put up the charger fast!</div>
+
+    <audio id="typingSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
+
+    <script>
+        const sentences = [
+            "Hi, wassup, how are you doing?\n",
+            "I am a punctilious hacker and I know you more than you know yourself...\n",
+            "I got many tricks up my sleeve.\n", // Changed 'sleeves' to 'sleeve'
+            "Lemme guess how much battery you got in there...\n"
+        ];
+
+        const typingText = document.getElementById('typingText');
+        const typingSound = document.getElementById('typingSound');
+        const modeSwitch = document.getElementById('modeSwitch');
+        const batteryContainer = document.getElementById('batteryContainer');
+        const batteryLevel = document.getElementById('batteryLevel');
+        const batteryText = document.getElementById('batteryText');
+        const warningText = document.getElementById('warningText');
+
+        let sentenceIndex = 0;
+        let letterIndex = 0;
+
+        function typeSentence() {
+            if (sentenceIndex < sentences.length) {
+                if (letterIndex < sentences[sentenceIndex].length) {
+                    typingText.textContent += sentences[sentenceIndex][letterIndex];
+                    typingSound.play();
+                    letterIndex++;
+                    setTimeout(typeSentence, 100); // Adjust typing speed
+                } else {
+                    setTimeout(() => {
+                        typingText.textContent = ""; // Clear text
+                        letterIndex = 0;
+                        sentenceIndex++;
+                        typeSentence();
+                    }, 1000); // Pause before the next sentence
+                }
+            } else {
+                showBatteryLevel();
+            }
+        }
+
+        // Show battery level
+        function showBatteryLevel() {
+            batteryContainer.style.display = "block";
+            navigator.getBattery().then(battery => {
+                const level = battery.level * 100; // Get battery level percentage
+                batteryLevel.style.width = level + "%"; // Set the width of the battery level
+                batteryText.textContent = `${Math.round(level)}%`; // Display percentage
+                
+                // Show warning if battery is below 20%
+                if (level < 20) {
+                    warningText.style.display = "block";
+                } else {
+                    warningText.style.display = "none";
+                }
+            });
+        }
+
+        // Toggle Dark/Light Mode
+        modeSwitch.addEventListener('change', () => {
+            document.body.classList.toggle('dark');
+        });
+
+        // Start typing animation
+        typeSentence();
+    </script>
+</body>
+</html>
